@@ -1,12 +1,21 @@
+import Layout from './components/Layout';
 import AddPostForm from './features/posts/AddPostForm';
-import PostsList from './features/posts/PostsList'
+import PostsList from './features/posts/PostsList';
+import { Routes, Route } from 'react-router-dom';
+import SinglePostPage from './features/posts/SinglePostPage';
 
 function App() {
 	return (
-		<main className="w-full h-fit text-3xl text-green-600 flex flex-col items-center justify-center bg-gray-600">
-			<AddPostForm />
-			<PostsList />
-		</main>
+		<Routes>
+			<Route path="/" element={<Layout />}>
+				<Route index element={<PostsList />} />
+
+				<Route path="post">
+					<Route index element={<AddPostForm />} />
+					<Route path=":postId" element={<SinglePostPage />} />
+				</Route>
+			</Route>
+		</Routes>
 	);
 }
 

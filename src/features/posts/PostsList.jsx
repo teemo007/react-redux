@@ -1,33 +1,37 @@
-import { useSelector } from 'react-redux/es/hooks/useSelector';
-import { selectAllPosts } from './postsSlice';
-import PostAuthor from './PostAuthor';
-import TimeAgo from './TimeAgo';
-import ReactionButtons from './ReactionButtons';
+import { useSelector, useDispatch, } from "react-redux";
+import { nanoid } from '@reduxjs/toolkit';
+import { selectAllPosts,getPostsStatus,getPostsError,fetchPosts } from "./postsSlice";
+import { useEffect } from "react";
+import PostsExcerpt from "./PostsExcerpt";
 
-const postsList = () => {
-	const posts = useSelector(selectAllPosts);
+const PostsList = () => {
+    const dispatch = useDispatch();
 
-	const orderPosts = posts
-		.slice()
-		.sort((a, b) => b.date.localeCompare(a.date));
+    const posts = useSelector(selectAllPosts);
+    const postStatus = useSelector(getPostsStatus);
+    const error = useSelector(getPostsError);
 
-	return orderPosts.map((post) => (
-		<article
-			key={post.id}
-			className="border-4 rounded-md border-solid p-1 my-1 border-yellow-200 min-w-[200px] max-w-[300px]"
-		>
-			<p className="text-4xl font-extrabold  p-2 my-1">{post.title}</p>
-			<p className="my-4 text-lg text-gray-200 p-2">
-				{post.content.substring(0, 100)}
-			</p>
-			<p className="my-4 text-lg text-gray-200 p-2">
-				<PostAuthor userId={post.userId} />
-				<TimeAgo timestamp={post.date} />
-			</p>
-
-			<ReactionButtons post={post} />
-		</article>
-	));
-};
-
-export default postsList;
+     useEffect(() => {
+        if (postStatus === 'idle') {
+            dispatch(fetchPosts())
+        }
+    }, [postStatus,dispatch]) 
+ 
+    let content;
+    if (postStatus === 'loading') {
+        content = <p>"Loading..."</p>;
+    } else if (postStatus === 'succeeded') {
+        const orderedPosts = posts.slice().sort((a,b) => b.date.localeCompare(a.date))
+		content = orderedPosts.map(post => <PostsExcerpt key={nanoid()} post={post} />)
+    } else if (postStatus === 'failed') {
+        content = <p>{error}</p>;
+    } 
+	
+    return (
+        <section>
+            <h2>Posts</h2>
+            {content}
+        </section>
+    )
+}
+export default PostsList
